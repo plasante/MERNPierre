@@ -15,7 +15,7 @@ app.get('/', (req, res, next) => {
 app.use("/user", userRouter);
 
 
-// connections to MongoDBB
+// connections to MongoDB
 mongoose.connect(
   `mongodb+srv://plasante:${process.env.MONGODB_PASSWORD}@cluster0.enctu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
 )
