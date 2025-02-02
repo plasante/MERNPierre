@@ -2,6 +2,8 @@ const Post = require("../models/Post");
 const req = require("express/lib/request");
 const res = require("express/lib/response");
 
+const requiredFields = ['title', 'description', 'location', 'date', 'image', 'user'];
+
 const getAllPosts = async (req, res) => {
   let posts;
   try {
@@ -69,8 +71,58 @@ const getPost  = async (req, res) => {
   }
 }
 
+const updatePost = async (req, res) => {
+  // Destructure the request.body
+  const { title, description, location, date, image } = req.body;
+  const id = req.params.id;
+
+  // Validate the parameters inside the body (undefined null empty)
+  for (const field of requiredFields) {
+    if (isNullOrEmpty(req.body[field])) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+  }
+
+  // post is undefined
+  let updatedPost;
+  try {
+    updatedPost = await Post.findByIdAndUpdate(id, {
+        title,
+        description,
+        location,
+        date: new Date(`${date}`),
+        image
+      },
+      {new: true});
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+
+  // if findByIdAndUpdate didn't find the post, return a 404
+  if (!updatedPost) {
+    return res.status(404).json({ message: 'Post not found' });
+  }
+
+  // if post is updated successfully, return the updated post
+  return res.status(200).json({updatedPost});
+}
+
+const deletePost = async (req, res) => {
+  const id = req.params.id;
+  try {
+      const post = await Post.findByIdAndDelete(id);
+      if (!post) {
+        return res.status(500).json({ message: 'Post not found' });
+      } else {
+        return res.status(200).json({ message: 'Post deleted successfully', post: post});
+      }
+    } catch (err) {
+      return res.status(500).json({ message: err.message });
+    }
+}
+
 function isNullOrEmpty(str) {
   return !str || str.trim() === "";
 }
 
-module.exports = { getAllPosts, addPost, getPost };
+module.exports = { getAllPosts, addPost, getPost, updatePost, deletePost };
