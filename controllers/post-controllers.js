@@ -51,8 +51,26 @@ const addPost = async (req, res) => {
 
 }
 
+const getPost  = async (req, res) => {
+  const id = req.params.id;
+
+  let post;
+
+  try {
+    // Get a document by id in a collection
+    post = await Post.findById(id);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    } else {
+      return res.status(200).json(post);
+    }
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+}
+
 function isNullOrEmpty(str) {
   return !str || str.trim() === "";
 }
 
-module.exports = { getAllPosts, addPost };
+module.exports = { getAllPosts, addPost, getPost };
