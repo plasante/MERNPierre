@@ -1,6 +1,8 @@
 const Post = require("../models/Post");
+const User = require("../models/User");
 const req = require("express/lib/request");
 const res = require("express/lib/response");
+const mongoose = require("mongoose");
 
 const requiredFields = ['title', 'description', 'location', 'date', 'image', 'user'];
 
@@ -36,10 +38,27 @@ const addPost = async (req, res) => {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
+  let existingUser;
+  try {
+    existingUser = await User.findById(user);
+    if (!existingUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+  } catch(err) {
+    return res.status(500).json({ message: err.message });
+  }
+
   // Save the new Post
   const newPost = new Post({ title, description, location, date: new Date(`${date}`), image, user });
     try {
-      const savedPost = await newPost.save();
+
+      // Start a session
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      existingUser.posts.push(newPost);
+      await existingUser.save({session})
+      const savedPost = await newPost.save(session);
+      await session.commitTransaction();
 
       if (!savedPost) {
         return res.status(500).json({ message: "Failed to save post" });
@@ -109,8 +128,16 @@ const updatePost = async (req, res) => {
 
 const deletePost = async (req, res) => {
   const id = req.params.id;
+  let post;
   try {
-      const post = await Post.findByIdAndDelete(id);
+      const session = await mongoose.startSession();
+      session.startTransaction();
+      post = await Post.findById(id).populate("user");
+      post.user.posts.pull(post);
+      await post.user.save({session});
+      post = await Post.findByIdAndDelete(id);
+      await session.commitTransaction();
+
       if (!post) {
         return res.status(500).json({ message: 'Post not found' });
       } else {

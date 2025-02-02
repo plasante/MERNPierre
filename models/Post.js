@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+// A Post belongs to only one User
 const postSchema = new Schema({
   title: {
       type: String,
@@ -27,7 +28,8 @@ const postSchema = new Schema({
     required: true,
   },
   user: {
-    type: String,
+    type: mongoose.Types.ObjectId,
+    ref: 'User',
     required: true,
   }
 });

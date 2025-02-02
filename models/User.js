@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+// A User can have many Post
 const userSchema = new Schema({
   name: {
     type: String,
@@ -21,8 +22,8 @@ const userSchema = new Schema({
   },
   posts: [
     {
-      type: String,
-      maxLength: 1024
+      type: mongoose.Types.ObjectId,
+      ref: 'Post',
     }
   ],
 });
