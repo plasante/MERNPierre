@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const bcrypt = require('bcryptjs');
 
 const getAllUsers = async (req, res) => {
   let users;
@@ -15,4 +16,27 @@ const getAllUsers = async (req, res) => {
   }
 }
 
-module.exports = { getAllUsers };
+const signup = async (req, res, next) => {
+  const { name, email, password } = req.body;
+  if (!name || name.trim() === "" || !email || email.trim() === "" || !password || password.length < 6) {
+    return res.status(422).json({message: "Invalid Data"});
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  let user;
+  try {
+    user = new User({email, name, password: hashedPassword});
+    await user.save();
+  } catch(err) {
+    return res.status(500).json({ message: err.message });
+  }
+
+  if (!user) {
+    return res.status(500).json({ message: "Unexpected Error" });
+  }
+
+  return res.status(201).json(user);
+}
+
+module.exports = { getAllUsers, signup };
