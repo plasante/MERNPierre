@@ -14,7 +14,7 @@ const getAllUsers = async (req, res) => {
   if (!users) {
     return res.status(401).json({ message: "Something unexpected happened" });
   } else {
-    return res.status(200).json(users);
+    return res.status(200).json({users});
   }
 }
 

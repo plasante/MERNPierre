@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const userRouter = require("./routing/user-routes");
+const postRouter = require("./routing/post-routes");
 const bodyParser = require("body-parser");
 
 const app = express();
@@ -17,6 +18,7 @@ app.get('/', (req, res, next) => {
 
 // middlewares
 app.use("/user", userRouter);
+app.use("/posts", postRouter);
 
 // connections to MongoDB
 const port = process.env.PORT || 5000;
