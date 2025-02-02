@@ -1,5 +1,7 @@
 const User = require("../models/User");
 const bcrypt = require('bcryptjs');
+const req = require("express/lib/request");
+const res = require("express/lib/response");
 
 const getAllUsers = async (req, res) => {
   let users;
@@ -39,4 +41,27 @@ const signup = async (req, res, next) => {
   return res.status(201).json(user);
 }
 
-module.exports = { getAllUsers, signup };
+const login = async (req, res, next) => {
+  const { email, password } = req.body;
+
+  if (!email || email.trim() === "" || !password || password.length < 6) {
+    return res.status(422).json({ message: "Invalid Data" });
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordValid) {
+    return res.status(400).json({ message: "Invalid password" });
+  }
+  return res
+    .status(200)
+    .json({ id: user._id, message: "Login successful", user });
+}
+
+module.exports = { getAllUsers, signup, login };
